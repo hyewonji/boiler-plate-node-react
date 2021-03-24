@@ -11,11 +11,11 @@ const userSchema = mongoose.Schema({
     email: {
         type: String,
         trim: true,    // 입력된 email에 공백이 있다면 공백을 없애주는 역할
-        unique:1
+        unique: 1
     },
     password: {
         type: String,
-        maxlenght:5
+        maxlenght: 5
     },
     lastname: {
         type: String,
@@ -78,14 +78,14 @@ userSchema.methods.generateToken = function(cb){
 
 userSchema.statics.findByToken = function(token, cb){
     let user = this;
-    
+    console.log(this,token);
     // (user._id + '')  = token
     // 토큰을 decode 한다.
     jwt.verify(token, 'secretToken', function(err, decoded){
         // 유저 아이디를 이용해서 유저를 찾은 다음에
         // 클라이언트에서 가져온 token과 DB에 보관된 토큰이 일치하는지 확인
 
-        user.findOne({"_id": decoded, "token": token}, function(err, user){
+        user.findOne({ "_id": decoded, "token": token }, function(err, user){
             if (err) return cb(err);
             cb(null, user)
         })
