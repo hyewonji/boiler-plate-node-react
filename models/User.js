@@ -1,6 +1,7 @@
-/*const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const saltRounds = 10 
+const saltRounds = 10 // salt의 자리수 설정
+const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
     name: {
@@ -31,35 +32,53 @@ const userSchema = mongoose.Schema({
     tokenExp: {
         type: Number
     }
-})
+});
 
+//save 하기 전에 함수를 실행하고 next()가 실행된다.
 userSchema.pre('save', function( next ){
     var user = this;
 
     if(user.isModified('password')){
         bcrypt.genSalt(saltRounds,function(err,salt){
-            if(err) return next(err)
+            if(err) return next(err);
 
             bcrypt.hash(user.password, salt, function(err, hash){
-                if(err) return next(err)
-                user.password = hash
-                next()
-            })
-        })
+                if   (err) return next(err);
+                user.password = hash;
+                next();
+            });
+        });
     //비밀번호를 암호화 시킨다.
     } else {
-        next()
-    }
-})
+        next();
+    };
+});
 
-userSchema.methods.comparePassword = function(plainPassword, cd){
-    //plainPassword : 1234567, 암호화된 비밀번호 : 
+userSchema.methods.comparePassword = function(plainPassword, cb){
+    //plainPassword : 12345678, 암호화된 비밀번호 : $2b$10$ri3SSGo5gw8A9BoxTX1KyeoeU/CWzxgAOXFobCpPPr4pbCNYeWN6y
     bcrypt.compare(plainPassword,this.password, function(err, isMatch){
-        if(err) return cb(err),
-            cb(null, isMatch)
-    })
+        console.log(isMatch);
+        if(err) return cb(err);
+        cb(null, isMatch);
+    });
+};
+
+userSchema.methods.generateToken = function(cb){
+    let user = this;
+    console.log(user);
+    // jsonwebtoken을 이용해서 token 생성하기
+    // user._id + 'secretToken' = token
+    // ->
+    // 'secretToken' -> user._id
+    let token =  jwt.sign(user._id.toHexString(), 'secretToken');
+    console.log(token);
+    user.token = token;
+    user.save(function(err, user){
+        if(err) return cb(err);
+        cb(null, user);
+    });
 }
 
-const User = mongoose.model('User' ,userSchema)
+const User = mongoose.model('User' ,userSchema);
 
-module.exports = { User }*/
+module.exports = { User };
